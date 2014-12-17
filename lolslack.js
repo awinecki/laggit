@@ -1,6 +1,8 @@
 var knox = require('knox');
-var argv = require('minimist')(process.argv.slice(2));
 var Slack = require('node-slack');
+var git = require('git-rev');
+var fs = require('fs');
+var argv = require('minimist')(process.argv.slice(2));
 
 var S3_ACCESS_KEY_ID = 'AKIAIUG6LZCOC62UEA3Q';
 var S3_SECRET_ACCESS_KEY = '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';
@@ -12,32 +14,43 @@ var s3client = knox.createClient({
 });
 
 var slack = new Slack('haikode', 'ThbSB26xsZrwk7NETJNhXla3');
-slack.send({
-    text: url
-});
+var repoDirname = process.cwd().split('/').pop();
+var user = process.env.USER;
 
-argv.repo;
 
-console.log(__dirname);
-console.log(__filename);
+function bucketPath(filePath) {
+  return 'https://s3-eu-west-1.amazonaws.com/haicommits/' +
+    filePath;
+}
 
-console.log(process.argv);
+function sendSlackMsg(msg) {
+  slack.send({
+      text: msg,
+      channel: argv.channel || '#test444'
+  });
+}
 
-// var savePhotoToAmazon = function(prefix, photoUrl) {
-//   var protocol;
-//   var fileKey = photoUrl.match(/.*(com|net)\/(.*)/i)[2];
-//   protocol.get(photoUrl, function(res) {
-//     var headers = {
-//         'Content-Length': res.headers['content-length'],
-//         'Content-Type': res.headers['content-type']
-//     };
-//     s3client.putStream(res, '/' + prefix + '/' + fileKey, headers,
-//         function(err, res) {
-//       // check `err`, then do `res.pipe(..)` or `res.resume()` or whatever.
-//       if (err) {
-//         console.log(err);
-//       }
-//       console.log('saved photo to s3: ' + fileKey);
-//     });
-//   });
-// };
+function saveLocalPictureToAmazon(localPath) {
+  fs.stat(localPath, function(err, stat){
+    var filename = localPath.split('/').pop();
+    var s3path = user + '/' + repoDirname + '/' + filename;
+    var req = s3client.put(s3path, {
+      'Content-Length': stat.size,
+      'Content-Type': 'text/plain'
+    });
+    fs.createReadStream(localPath).pipe(req);
+    req.on('response', function(res){
+      sendSlackMsg(bucketPath(s3path));
+    });
+  });
+}
+
+
+// run
+git.long(function (str) {
+  var lastCommitSha = str.substring(0, 11);
+  var ext = '.gif';
+  var commitPicturePath = '/Users/' + user + '/.lolcommits/' +
+    repoDirname + '/' + lastCommitSha + ext;
+  saveLocalPictureToAmazon(commitPicturePath);
+})
