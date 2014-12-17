@@ -1,3 +1,6 @@
+#!/bin/sh
+':' //; exec "$(command -v nodejs || command -v node)" "$0" "$@"
+
 var knox = require('knox');
 var Slack = require('node-slack');
 var git = require('git-rev');
