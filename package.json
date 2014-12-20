@@ -1,6 +1,6 @@
 {
   "name": "laggit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "repository": {
     "type": "git",
@@ -30,10 +30,11 @@
   "license": "ISC",
   "dependencies": {
     "chalk": "^0.5.1",
+    "debug": "^2.1.0",
     "git-rev": "^0.2.1",
     "knox": "^0.9.1",
     "minimist": "^1.1.0",
-    "node-slack": "0.0.5",
-    "shelljs": "^0.3.0"
+    "shelljs": "^0.3.0",
+    "slack-node": "0.0.93"
   }
 }

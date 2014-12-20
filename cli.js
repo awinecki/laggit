@@ -5,7 +5,8 @@ var chalk = require('chalk');
 var fs = require('fs');
 var git = require('git-rev');
 var knox = require('knox');
-var slack = require('node-slack');
+var slack = require('slack-node');
+var debug = require('debug')('laggit');
 
 
 var S3_ACCESS_KEY_ID = process.env.LAGGIT_S3_KEY;
@@ -17,7 +18,7 @@ var SLACK_DEFAULT_CHANNEL = process.env.LAGGIT_SLACK_CHANNEL;
 var user = process.env.USER;
 var repoDirname = process.cwd().split('/').pop();
 
-var slackClient = new slack(SLACK_TEAM_NAME, SLACK_TOKEN);
+var slackClient = new slack(SLACK_TOKEN, SLACK_TEAM_NAME);
 var s3client = knox.createClient({
   key: S3_ACCESS_KEY_ID,
   secret: S3_SECRET_ACCESS_KEY,
@@ -30,19 +31,21 @@ function bucketPath(filePath) {
 }
 
 function sendSlackMsg(msg) {
-  slackClient.send({
-      text: msg,
-      channel: argv.channel || SLACK_DEFAULT_CHANNEL
+  slackClient.webhook({
+    channel: argv.channel || SLACK_DEFAULT_CHANNEL,
+    text: msg
+  }, function(err, response) {
+    if (response.statusCode !== 200) {
+      console.log(chalk.red("Slack communication error."));
+      console.log(chalk.red(response.response));
+    }
   });
 }
 
 function saveLocalPictureToAmazon(localPath) {
   fs.stat(localPath, function(err, stat){
     if (!stat) {
-      console.log(chalk.yellow(
-        'Lolcommit not found for: '),
-        chalk.gray(localPath)
-      );
+      debug('Lolcommit not found for: ' + localPath);
       return;
     }
     var filename = localPath.split('/').pop();
@@ -54,6 +57,7 @@ function saveLocalPictureToAmazon(localPath) {
     fs.createReadStream(localPath).pipe(req);
     req.on('response', function(res){
       sendSlackMsg(bucketPath(s3path));
+      debug('Lolcommit found and sent to s3: ' + localPath);
     });
   });
 }
