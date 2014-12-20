@@ -1,5 +1,4 @@
-#!/bin/sh
-':' //; exec "$(command -v nodejs || command -v node)" "$0" "$@"
+#!/usr/bin/env node
 
 var argv = require('minimist')(process.argv.slice(2));
 var chalk = require('chalk');
@@ -9,12 +8,12 @@ var knox = require('knox');
 var slack = require('node-slack');
 
 
-var S3_ACCESS_KEY_ID = 'AKIAIUG6LZCOC62UEA3Q';
-var S3_SECRET_ACCESS_KEY = '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';
-var S3_BUCKET_NAME = 'haicommits';
-var SLACK_TEAM_NAME = 'haikode';
-var SLACK_TOKEN = 'ThbSB26xsZrwk7NETJNhXla3';
-var SLACK_DEFAULT_CHANNEL = '#test444';
+var S3_ACCESS_KEY_ID = process.env.LAGGIT_S3_KEY;
+var S3_SECRET_ACCESS_KEY = process.env.LAGGIT_S3_SECRET;
+var S3_BUCKET_NAME = process.env.LAGGIT_S3_BUCKET;
+var SLACK_TEAM_NAME = process.env.LAGGIT_SLACK_TEAM;
+var SLACK_TOKEN = process.env.LAGGIT_SLACK_TOKEN;
+var SLACK_DEFAULT_CHANNEL = process.env.LAGGIT_SLACK_CHANNEL;
 var user = process.env.USER;
 var repoDirname = process.cwd().split('/').pop();
 
@@ -41,8 +40,8 @@ function saveLocalPictureToAmazon(localPath) {
   fs.stat(localPath, function(err, stat){
     if (!stat) {
       console.log(chalk.yellow(
-        'Lolcommit img/gif not found for the last commit.'),
-        chalk.gray('Tried ' + localPath)
+        'Lolcommit not found for: '),
+        chalk.gray(localPath)
       );
       return;
     }
@@ -62,8 +61,10 @@ function saveLocalPictureToAmazon(localPath) {
 // run
 git.long(function (str) {
   var lastCommitSha = str.substring(0, 11);
-  var ext = '.gif';
   var commitPicturePath = '/Users/' + user + '/.lolcommits/' +
-    repoDirname + '/' + lastCommitSha + ext;
+    repoDirname + '/' + lastCommitSha + '.jpg';
+  var commitGifPath = '/Users/' + user + '/.lolcommits/' +
+    repoDirname + '/' + lastCommitSha + '.gif';
   saveLocalPictureToAmazon(commitPicturePath);
+  saveLocalPictureToAmazon(commitGifPath);
 });

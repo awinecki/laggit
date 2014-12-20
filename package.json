@@ -1,16 +1,32 @@
 {
   "name": "laggit",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
-  "main": "send.js",
-  "repository": "https://github.com/awinecki/laggit",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/awinecki/laggit"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "laggit": "./send"
+    "laggit": "cli.js"
   },
-  "author": "awinecki",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "keywords": [
+    "slack",
+    "lolcommits",
+    "git",
+    "cli",
+    "tool"
+  ],
+  "author": {
+    "name": "awinecki",
+    "email": "winecki@gmail.com"
+  },
+  "homepage": "https://github.com/awinecki/laggit",
   "license": "ISC",
   "dependencies": {
     "chalk": "^0.5.1",
